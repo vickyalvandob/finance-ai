@@ -3,6 +3,10 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import { Env } from "./config/env.config";
 import { HTTPSTATUS } from "./config/http.config";
+import { errorHandler } from "./middlewares/errorHandler.middleware";
+import { asyncHandler } from "./middlewares/asyncHandler.middleware";
+import { BadRequestException } from "./utils/app-error";
+import connectDatabase from "./config/database.config";
 
 const app = express();
 const BASE_PATH = Env.BASE_PATH;
@@ -17,13 +21,19 @@ app.use(
   })
 );
 
-// Catch‑all route (fixed)
-app.get('/', (req: Request, res: Response) => {
-  res.status(HTTPSTATUS.OK).json({
-    message: "Hello Subscribe to the channel",
-  });
-});
+app.get(
+  "/",
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    throw new BadRequestException("This is a test error");
+    res.status(HTTPSTATUS.OK).json({
+      message: "Hello Subcribe to the channel",
+    });
+  })
+);
 
-app.listen(Env.PORT, () => {
+app.use(errorHandler);
+
+app.listen(Env.PORT, async () => {
+  await connectDatabase();
   console.log(`Server is running on port ${Env.PORT} in ${Env.NODE_ENV} mode`);
 });
