@@ -113,3 +113,33 @@ export const getTransactionByIdService = async (
 
   return transaction;
 };
+
+export const duplicateTransactionService = async (
+  userId: string,
+  transactionId: string
+) => {
+  const transaction = await TransactionModel.findOne({
+    _id: transactionId,
+    userId,
+  });
+
+  if (!transaction) throw new NotFoundException("Transaction not found");
+
+  const duplicated = await TransactionModel.create({
+    ...transaction.toObject(),
+    _id: undefined,
+    title: `Duplicate - ${transaction.title}`,
+    description: transaction.description
+      ? `${transaction.description} (Duplicate)`
+      : "Duplicated transaction",
+    isRecurring: false,
+    recurringInterval: undefined,
+    nextRecurringDate: undefined,
+    createdAt: undefined,
+    updatedAt: undefined,
+  });
+
+  return duplicated;
+};
+
+
